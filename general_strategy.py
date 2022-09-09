@@ -6,9 +6,10 @@ from pelita.utils import walls_to_graph
 from demo05_basic_defender import move as move_defender
 from demo04_basic_attacker import move as move_attacker
 
-#from defender_02 imporat move as move_defender
+#from defender_02 import move as move_defender
 #from attacker_02 import move as move_attacker
 import utils
+
 
 # our own food: bot.food
 
