@@ -3,12 +3,13 @@ TEAM_NAME = 'NonViolentPelitas'
 import pelita.utils
 from pelita.utils import walls_to_graph
 
-from demo05_basic_defender import move as move_defender
-from demo04_basic_attacker import move as move_attacker
+#from demo05_basic_defender import move as move_defender
+#from demo04_basic_attacker import move as move_attacker
 
-#from defender_02 imporat move as move_defender
-#from attacker_02 import move as move_attacker
-import utils
+from defender_02 imporat move as move_defender
+from attacker_02 import move as move_attacker
+
+#import utils
 
 # our own food: bot.food
 
@@ -25,6 +26,7 @@ def init_state(personality):
         # entries prefixed with "defend_" are used by the move_defender function
         "defend_target": None,
         "defend_path": None,
+
 
         # # entries about previous food postions
         # "prev_foodmap": [],
@@ -49,10 +51,29 @@ def move(bot, state):
         state['graph'] = walls_to_graph(bot.walls)
         state['prev_foodmap'] = bot.food # initial state
         state['eaten_food'] = []
-        #### UPDATE ACCORDING TO STRATEGY #####
-        state[0] = init_state("attacker")
-        state[1] = init_state("defender")
 
+        #### UPDATE ACCORDING TO STRATEGY #####
+        state["global_strategy"] = "game_start" ## not used right now, keep for later?
+
+        state[0] = init_state("attacker")
+        state[1] = init_state("attacker")
+
+## if conditions for each global_strategy
+    if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
+        state["global_strategy"] = "individual" # each bot's personality is updated individually
+
+### define what to do based on global_strategy
+# game start --> move to midline
+# individual --> for now one attacker one defender
+# defend_all --> both bots to defense
+# attack_all --> both bots to attack
+    if state["global_strategy"] == "game_start":
+        pass ## TODO: move to optimal midline position while enemy is_noisy
+
+    elif state["global_strategy"] == "individual":
+        # TODO: assign attacker/defender based on some smart idea (e.g. is food closer or enemy?)
+        state[0]["personality"] = "attacker"
+        state[1]["personality"] = "defender"
 
     # keep track of food changes for distant enemy positions
     track_foodchange(bot, state)
