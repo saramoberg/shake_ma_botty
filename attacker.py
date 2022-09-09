@@ -25,17 +25,6 @@ def border(bot):
               if cell not in real_walls]
     return border
 
-# def enemy_food(bot):
-#     our_last_pos = 15 if bot.is_blue else 16
-#     our_side = bot.is_blue
-# 
-#     enemy_food = [cell 
-#                   for cell in bot.food 
-#                   if bot.is_blue and cell[0] > our_last_pos
-#                   or not bot.is_blue and cell[0] < our_last_pos
-#                   ]
-#     return enemy_food
-
 
 def init_attack_state():
     return {
@@ -61,20 +50,20 @@ def move(bot, state):
         min_path_length = float('inf')
         best_path = None
         for cell in our_border:
-            path = networkx.shortest_path(state['graph'],
+            path = get_shortest_path(state['graph'],
                                           bot.position, cell)
-            if len(path) < min_path_length:
-                best_path = path[1:]
-                min_path_length = len(path)
+            if path is None:
+                best_path = None
+            else:
+                if len(path) < min_path_length:
+                    best_path = path[1:]
+                    min_path_length = len(path)
 
         # remember the path
         state[bot.turn]['path'] = best_path[1:]
 
     else:
         print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
-        # TODO: maybe some other logic to implement 
-        # TODO: while on the border?
-
         # get_greedy_path takes care of knowing 
         # where the enemies are
         for cell in bot.legal_positions:
@@ -100,7 +89,6 @@ def move(bot, state):
                 updated_graph = walls_to_graph(updated_walls)
                 # for food in enemy_food:
                 #     assert food not in updated_graph
-                # TODO: handle a case where there is no good path
                 assert bot.position not in updated_walls
                 paths = [get_shortest_path(updated_graph, bot.position, food)
                          for food in enemy_food
@@ -114,11 +102,17 @@ def move(bot, state):
                 else:
                     best_path = min(paths, key = len)[1:]
 
-    # do safety shit FIXME
     if best_path is not None:
         next_move = best_path.pop(0)
     else:
-        # TODO: add no suicide shit
-        next_move = bot.random.choice(bot.legal_positions)
+        good_positions = {
+            pos for pos in bot.legal_positions
+            if pos not in bot.enemy[0].legal_positions
+            and pos not in bot.enemy[1].legal_positions
+        }
+        if not good_positions:
+            next_move = bot.position
+        else:
+            next_move = bot.random.choice(list(good_positions))
 
     return next_move
