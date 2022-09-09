@@ -11,7 +11,6 @@ TEAM_NAME = 'Basic Defender Bots'
 import networkx
 
 from pelita.utils import walls_to_graph
-
 def init_defend_state():
     return {
             "defend_target": None,
@@ -29,12 +28,26 @@ def move(bot, state):
     if bot.enemy[0].is_noisy and bot.enemy[1].is_noisy:
         # if both enemies are noisy, just aim for our turn companion
         target = bot.enemy[turn].position
+        #state[bot.turn]['defend_ID'] = bot.enemy[turn]
+    elif not bot.enemy[0].is_noisy and not bot.enemy[1].is_noisy:
+        # if none are noisy, aim for the closest one
+        if bot.enemy[turn].position in bot.homezone:
+            dist_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
+            dist_not_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
+            if dist_turn < dist_not_turn:
+                target = bot.enemy[turn].position
+            else:
+                target = bot.enemy[1-turn].position
+
+        #target = change_target(bot,networkx,turn,state)
     elif not bot.enemy[turn].is_noisy:
         # if our turn companion is not noisy, go for it
         target = bot.enemy[turn].position
+        #state[bot.turn]['defend_ID'] = bot.enemy[turn]
     elif not bot.enemy[1-turn].is_noisy:
         # if the other enemy is not noisy, go for it
         target = bot.enemy[1-turn].position
+        #state[bot.turn]['defend_ID'] = bot.enemy[1-turn]
     else:
         raise Exception('We should never be here!')
 
@@ -49,3 +62,36 @@ def move(bot, state):
         next_pos = bot.position
 
     return next_pos
+
+
+def change_target(bot,networkx,turn,state):
+    if bot.enemy[turn].position in bot.homezone:
+        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
+        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
+        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
+            target = bot.enemy[turn].position
+        else:
+            target = bot.enemy[1-turn].position
+    else:
+        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
+        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
+        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
+            target = bot.enemy[turn].position
+        else:
+            target = bot.enemy[1-turn].position
+
+
+
+
+#if both not noisy
+ #   clostest target = 
+#
+ #   if both in hz
+ #   - go for closest one
+#
+  #  if one in homezone
+   # - go for it 
+        
+
+
+
