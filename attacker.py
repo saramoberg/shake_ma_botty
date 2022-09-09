@@ -9,6 +9,12 @@ TEAM_NAME = 'ATTACKER'
 import networkx
 from pelita.utils import walls_to_graph
 
+def get_shortest_path(graph, source, target):
+    """If not path, returns None"""
+    try:
+        return networkx.shortest_path(graph, source, target)
+    except (networkx.exception.NetworkXNoPath, networkx.exception.NodeNotFound):
+        return None
 
 def border(bot):
     real_walls = bot.walls
@@ -49,6 +55,7 @@ def move(bot, state):
         our_border = state['border']
 
     if bot.position in bot.homezone and bot.position not in our_border:
+        print(f"Bot {bot.turn} command {bot.is_blue} is in homezome")
         # compute distance to all border cells
         # select the shortest path to the border
         min_path_length = float('inf')
@@ -64,6 +71,7 @@ def move(bot, state):
         state[bot.turn]['path'] = best_path[1:]
 
     else:
+        print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
         # TODO: maybe some other logic to implement 
         # TODO: while on the border?
 
@@ -90,18 +98,27 @@ def move(bot, state):
                     )
                 )
                 updated_graph = walls_to_graph(updated_walls)
-                assert bot.position not in updated_walls
                 # for food in enemy_food:
                 #     assert food not in updated_graph
-                paths = [networkx.shortest_path(updated_graph,
-                                              bot.position,
-                                              food)
+                # TODO: handle a case where there is no good path
+                assert bot.position not in updated_walls
+                paths = [get_shortest_path(updated_graph, bot.position, food)
                          for food in enemy_food
-                         if food not in updated_walls]
-                best_path = min(paths, key = len)[1:]
-                print(len(paths),len(best_path))
+                         if food in updated_graph]
+                # filter out None's 
+                paths = [p for p in paths if p is not None]
+
+                # if there are not paths
+                if not paths:
+                    best_path = None
+                else:
+                    best_path = min(paths, key = len)[1:]
 
     # do safety shit FIXME
-    next_move = best_path.pop(0)
+    if best_path is not None:
+        next_move = best_path.pop(0)
+    else:
+        # TODO: add no suicide shit
+        next_move = bot.random.choice(bot.legal_positions)
 
     return next_move
