@@ -38,7 +38,13 @@ def move(bot, state):
                 target = bot.enemy[turn].position
             else:
                 target = bot.enemy[1-turn].position
-
+        elif bot.enemy[1-turn].position in bot.homezone:
+            dist_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
+            dist_not_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
+            if dist_turn < dist_not_turn:
+                target = bot.enemy[turn].position
+            else:
+                target = bot.enemy[1-turn].position
         #target = change_target(bot,networkx,turn,state)
     elif not bot.enemy[turn].is_noisy:
         # if our turn companion is not noisy, go for it
