@@ -9,6 +9,7 @@ TEAM_NAME = 'ATTACKER'
 import networkx
 from pelita.utils import walls_to_graph
 
+
 def border(bot):
     real_walls = bot.walls
     our_last_pos = 15 if bot.is_blue else 16
@@ -17,6 +18,17 @@ def border(bot):
               for cell in potential_walls
               if cell not in real_walls]
     return border
+
+# def enemy_food(bot):
+#     our_last_pos = 15 if bot.is_blue else 16
+#     our_side = bot.is_blue
+# 
+#     enemy_food = [cell 
+#                   for cell in bot.food 
+#                   if bot.is_blue and cell[0] > our_last_pos
+#                   or not bot.is_blue and cell[0] < our_last_pos
+#                   ]
+#     return enemy_food
 
 
 def init_attack_state():
@@ -52,7 +64,24 @@ def move(bot, state):
         state[bot.turn]['path'] = best_path[1:]
 
     else:
-        best_path = [bot.position]
+        # TODO: maybe some other logic to implement 
+        # TODO: while on the border?
+
+        n = 5 # FIXME: a parameter 
+
+        # get_greedy_path takes care of knowing 
+        # where the enemies are
+        for cell in bot.legal_positions:
+            enemy_food = bot.enemy[0].food
+            if cell in enemy_food:
+                best_path = [cell] # FIXME: random of all foods
+            else:
+                paths = [networkx.shortest_path(state['graph'],
+                                              bot.position,
+                                              food)
+                         for food in enemy_food]
+                best_path = min(paths, key = len)[1:]
+                print(len(paths),len(best_path))
 
     # do safety shit FIXME
     next_move = best_path.pop(0)
