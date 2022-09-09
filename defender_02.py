@@ -5,11 +5,14 @@
 # As soon as an enemy bot is not noisy anymore, i.e. it has come near, the
 # bot goes after it and leaves the other enemy alone
 
+# TODO
+# Back and forth wiggling
+# More reliable tracking of a transiently noisy enemy
+
 TEAM_NAME = 'Basic Defender Bots'
 
-
 import networkx
-
+import numpy as np
 from pelita.utils import walls_to_graph
 def init_defend_state():
     return {
@@ -70,16 +73,22 @@ def move(bot, state):
 
     # get the next position along the shortest path to our target enemy bot
     next_pos = networkx.shortest_path(state['graph'], bot.position, target)[1]
+    if next_pos == bot.enemy[0].enemy[1-bot.turn].position:
+        next_pos = bot.position
+    #if bot.position == state[bot.turn]["position"][-5] and target == next_pos:
+        #find_former_position = 
+        #find_former_position = diff(state[bot.turn])
 
-    
-    
+
     # we save the current target in our state dictionary
     state[bot.turn]["defend_target"] = target
-
+    state[bot.turn]["position"] = bot.position
     # let's check that we don't go into the enemy homezone, i.e. stop at the
     # border
     if next_pos in bot.enemy[turn].homezone:
         next_pos = bot.position
+
+    
 
     return next_pos
 
