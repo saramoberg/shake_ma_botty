@@ -67,8 +67,6 @@ def move(bot, state):
         # TODO: maybe some other logic to implement 
         # TODO: while on the border?
 
-        n = 5 # FIXME: a parameter 
-
         # get_greedy_path takes care of knowing 
         # where the enemies are
         for cell in bot.legal_positions:
@@ -76,10 +74,30 @@ def move(bot, state):
             if cell in enemy_food:
                 best_path = [cell] # FIXME: random of all foods
             else:
-                paths = [networkx.shortest_path(state['graph'],
+                updated_walls = (
+                    bot.walls
+                    .union(
+                        {enemy.position
+                         for enemy in bot.enemy
+                         if not enemy.is_noisy}
+                    )
+                    .union(
+                        {position
+                         for enemy in bot.enemy
+                         for position in enemy.legal_positions
+                         if not enemy.is_noisy
+                         and position != bot.position}
+                    )
+                )
+                updated_graph = walls_to_graph(updated_walls)
+                assert bot.position not in updated_walls
+                # for food in enemy_food:
+                #     assert food not in updated_graph
+                paths = [networkx.shortest_path(updated_graph,
                                               bot.position,
                                               food)
-                         for food in enemy_food]
+                         for food in enemy_food
+                         if food not in updated_walls]
                 best_path = min(paths, key = len)[1:]
                 print(len(paths),len(best_path))
 
