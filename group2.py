@@ -86,7 +86,7 @@ def move(bot, state):
         state["global_strategy"] = "individual" # each bot's personality is updated individually
 
     if len(bot.food) == 8 and state["lastFoodFlag"]:
-        print("Food length", len(bot.food))
+        #print("Food length", len(bot.food))
         state["global_strategy"] = "defend_last_food"
         #enteredLastFood = True
          # we want to enter this if only once
@@ -165,8 +165,8 @@ def move(bot, state):
     elif state[bot.turn]["personality"] == "last_defender":
         ### assing only to appropriate bot via bot.char or bot.other.char
         path = state[bot.turn]["defend_food_path"]
-        print("is full: ", path)
-        print("Bot position:", bot.position)
+        #print("is full: ", path)
+        #print("Bot position:", bot.position)
         # get the next position along the shortest path to reach our target
         if path == []:
             next_pos = bot.position
@@ -174,11 +174,9 @@ def move(bot, state):
         else:
             next_pos = path.pop(0)
 
-        ### --seed 736227010404761010 ###
-
         #state[bot.turn]["personality"] = "last_defender"
         bot.say('last')
-        print('bot position: ', bot.position, 'food position:', state[bot.turn]["defend_food_target"])
+        #print('bot position: ', bot.position, 'food position:', state[bot.turn]["defend_food_target"])
 
     else:
         assert False, state
