@@ -39,6 +39,8 @@ def init_state(personality):
 
 
 
+
+
 def track_foodchange(bot, state):
     # turn food lists into sets for set comparison
     food_diff = set(state['prev_foodmap']) - set(bot.food)
@@ -52,7 +54,7 @@ def track_foodchange(bot, state):
 def move(bot, state):
     # initiate the state dictionary
     turn = bot.turn
-    enteredLastFood = False
+
 
     if state == {}:
         # here each bot has its own state dictionary (0 and 1) and they share
@@ -65,6 +67,9 @@ def move(bot, state):
         #### UPDATE ACCORDING TO STRATEGY #####
         state["global_strategy"] = "game_start" ## not used right now, keep for later?
 
+        state["lastFoodFlag"] = True
+        #state["enteredLastFood"] = True
+
         state[0] = init_state("attacker")
         state[1] = init_state("attacker")
 
@@ -74,14 +79,17 @@ def move(bot, state):
         state[1]["defend_food_path"] = []
         state[1]["defend_food_target"] = []
 
+
+
 # if conditions for each global_strategy
     if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
         state["global_strategy"] = "individual" # each bot's personality is updated individually
 
-    if len(bot.food) == 28:
-        print(len(bot.food))
+    if len(bot.food) == 28 and state["lastFoodFlag"]:
+        print("Food length", len(bot.food))
         state["global_strategy"] = "defend_last_food"
-        enteredLastFood = True
+        #enteredLastFood = True
+         # we want to enter this if only once
 
 ### define what to do based on global_strategy
 # game start --> move to midline
@@ -105,8 +113,8 @@ def move(bot, state):
         # pick shortest path target
 
 
-        if enteredLastFood:
-            enteredLastFood = False
+        if state["lastFoodFlag"]:
+            state["lastFoodFlag"] = False
             possible_paths_turn = {}
             possible_paths_other = {}
 
@@ -132,14 +140,17 @@ def move(bot, state):
                 state[moving_bot]["defend_food_path"] = networkx.shortest_path(state['graph'], bot.position, closest_food[0][0])[1:]
 
                 path = state[bot.turn]["defend_food_path"]
-                print("is full: ", state[bot.turn]["defend_food_path"])
+                print("is full: ", path)
                 print("Bot position:", bot.position)
                 # get the next position along the shortest path to reach our target
                 if path == []:
                     next_pos = bot.position
                 else:
                     next_pos = path.pop(0)
+                ### --seed 736227010404761010 ###
+
                 state[bot.turn]["personality"] = "last_defender"
+                bot.say('last')
 
             else:
                 if state[bot.turn]["personality"] == "defender":
@@ -151,20 +162,21 @@ def move(bot, state):
             if pos not in (bot.enemy[0].position, bot.enemy[1].position):
                 safe_positions.append(pos)
 
-
     #### keep track of food changes for distant enemy positions
     track_foodchange(bot, state)
     # update previous food map
 
     # Only the attacker can go into the enemy zone and be killed. Therefore
     # we only need to switch roles from the perspective of the defender.
-    if bot.other.was_killed:
-        state[bot.turn]["personality"] = "attacker"
-        state[bot.other.turn]["personality"] = "defender"
+
+#    if bot.other.was_killed:
+#        state[bot.turn]["personality"] = "attacker"
+#        state[bot.other.turn]["personality"] = "defender"
 
     if state[bot.turn]["personality"] == "attacker":
         next_pos = move_attacker(bot, state)
         bot.say('attacker')
+    #elif state[bot.turn]["personality"] == "defender":
     else:
         next_pos = move_defender(bot, state)
         bot.say('defender')
