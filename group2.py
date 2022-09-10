@@ -1,13 +1,14 @@
 TEAM_NAME = 'NonViolentPelitas'
 
+import networkx
 import pelita.utils
 from pelita.utils import walls_to_graph
 
-#from demo05_basic_defender import move as move_defender
-#from demo04_basic_attacker import move as move_attacker
+from demo05_basic_defender import move as move_defender
+from demo04_basic_attacker import move as move_attacker
 
-from defender_02 imporat move as move_defender
-from attacker_02 import move as move_attacker
+#from defender_02 import move as move_defender
+#from attacker_02 import move as move_attacker
 
 #import utils
 
@@ -32,6 +33,7 @@ def init_state(personality):
         # "prev_foodmap": [],
         # "eaten_food": [],
     }
+
 
 
 def track_foodchange(bot, state):
@@ -61,12 +63,14 @@ def move(bot, state):
 ## if conditions for each global_strategy
     if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
         state["global_strategy"] = "individual" # each bot's personality is updated individually
-
+    elif len(bot.food) <= 4:
+        state["global_strategy"] = "defend_last_food"
 ### define what to do based on global_strategy
 # game start --> move to midline
 # individual --> for now one attacker one defender
 # defend_all --> both bots to defense
 # attack_all --> both bots to attack
+
     if state["global_strategy"] == "game_start":
         pass ## TODO: move to optimal midline position while enemy is_noisy
 
@@ -74,6 +78,43 @@ def move(bot, state):
         # TODO: assign attacker/defender based on some smart idea (e.g. is food closer or enemy?)
         state[0]["personality"] = "attacker"
         state[1]["personality"] = "defender"
+
+    elif state["global_strategy"] == "defend_last_food":
+        target_options = bot.food
+        # figure out how far each food is
+        # for loop over target_options -- distance/shortest attack_path
+        # pick shortest path target
+        possible_paths = {}
+        for target_option in target_options:
+            possible_paths[target_option] = len(networkx.shortest_path(state['graph'], bot.position, target)[1:])
+
+        closest_food = sorted(possible_paths.items(), key=lambda x: x[1], reverse=True)
+        state[bot.turn]["defend_path"] = closest_food[0]
+
+        # choose a target food pellet if we still don't have one or
+        ## if the old target has been already eaten
+
+    #if (target is None) or (target not in enemy[0].food):
+        # position of the target food pellet
+        #target = bot.random.choice(bot.food)
+        # use networkx to get the shortest path from here to the target
+        # we do not use the first position, which is always equal to bot_position
+        #path = networkx.shortest_path(state['graph'], bot.position, target)[1:]
+        state[bot.turn]["defend_path"] = path
+        state[bot.turn]["defend_target"] = target
+
+        # get the next position along the shortest path to reach our target
+        next_pos = path.pop(0)
+        # if we are not in our homezone we should check if it is safe to proceed
+        if next_pos in bot.homezone:
+            # get a list of safe positions
+            safe_positions = []
+            for pos in bot.legal_positions:
+                if pos not in (enemy[0].position, enemy[1].position):
+                    safe_positions.append(pos)
+
+
+
 
     # keep track of food changes for distant enemy positions
     track_foodchange(bot, state)
