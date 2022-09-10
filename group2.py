@@ -85,7 +85,7 @@ def move(bot, state):
     if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
         state["global_strategy"] = "individual" # each bot's personality is updated individually
 
-    if len(bot.food) == 28 and state["lastFoodFlag"]:
+    if len(bot.food) == 8 and state["lastFoodFlag"]:
         print("Food length", len(bot.food))
         state["global_strategy"] = "defend_last_food"
         #enteredLastFood = True
@@ -112,7 +112,6 @@ def move(bot, state):
         # for loop over target_options -- distance/shortest attack_path
         # pick shortest path target
 
-
         if state["lastFoodFlag"]:
             state["lastFoodFlag"] = False
             possible_paths_turn = {}
@@ -132,29 +131,13 @@ def move(bot, state):
                 moving_bot = turn
                 closest_food = closest_food_turn
 
-            # choose a target food pellet if we still don't have one or
-            ## if the old target has been already eaten
-            if bot.turn == moving_bot:
-                ### assing only to appropriate bot via bot.char or bot.other.char
-                state[moving_bot]["defend_food_target"] = closest_food[0][0]
-                state[moving_bot]["defend_food_path"] = networkx.shortest_path(state['graph'], bot.position, closest_food[0][0])[1:]
-
-                path = state[bot.turn]["defend_food_path"]
-                print("is full: ", path)
-                print("Bot position:", bot.position)
-                # get the next position along the shortest path to reach our target
-                if path == []:
-                    next_pos = bot.position
-                else:
-                    next_pos = path.pop(0)
-                ### --seed 736227010404761010 ###
-
-                state[bot.turn]["personality"] = "last_defender"
-                bot.say('last')
-
-            else:
-                if state[bot.turn]["personality"] == "defender":
-                    state[bot.turn]["personality"] = "attacker"
+            state[moving_bot]["defend_food_target"] = closest_food[0][0]
+            state[moving_bot]["defend_food_path"] = networkx.shortest_path(state['graph'], bot.position, closest_food[0][0])[1:]
+            state[moving_bot]["personality"] = "last_defender"
+            # change other bots personality if they are not already an attacker
+            other_bot = 1 - moving_bot
+            if state[other_bot]["personality"] == "defender":
+                state[other_bot]["personality"] = "attacker"
 
         # get a list of safe positions
         safe_positions = []
@@ -163,7 +146,7 @@ def move(bot, state):
                 safe_positions.append(pos)
 
     #### keep track of food changes for distant enemy positions
-    track_foodchange(bot, state)
+#    track_foodchange(bot, state)
     # update previous food map
 
     # Only the attacker can go into the enemy zone and be killed. Therefore
@@ -176,11 +159,32 @@ def move(bot, state):
     if state[bot.turn]["personality"] == "attacker":
         next_pos = move_attacker(bot, state)
         bot.say('attacker')
-    #elif state[bot.turn]["personality"] == "defender":
-    else:
+    elif state[bot.turn]["personality"] == "defender":
         next_pos = move_defender(bot, state)
         bot.say('defender')
+    elif state[bot.turn]["personality"] == "last_defender":
+        ### assing only to appropriate bot via bot.char or bot.other.char
+        path = state[bot.turn]["defend_food_path"]
+        print("is full: ", path)
+        print("Bot position:", bot.position)
+        # get the next position along the shortest path to reach our target
+        if path == []:
+            next_pos = bot.position
 
+        else:
+            next_pos = path.pop(0)
 
+        ### --seed 736227010404761010 ###
+
+        #state[bot.turn]["personality"] = "last_defender"
+        bot.say('last')
+        print('bot position: ', bot.position, 'food position:', state[bot.turn]["defend_food_target"])
+
+    else:
+        assert False, state
+        # raise ValueError("Should never be here but here we are")
+
+    if next_pos not in bot.legal_positions:
+        next_pos = bot.random.choice(bot.legal_positions)
 
     return next_pos
