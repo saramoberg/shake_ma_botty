@@ -131,9 +131,6 @@ def move(bot, state):
     else:
         best_path = find_path_to_best_pellet(bot,state)[1:]
 
-    print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
-    print(best_path)
-
     if best_path is not None:
         next_move = best_path[0]
     else:
@@ -146,7 +143,6 @@ def move(bot, state):
             next_move = bot.position
             reasoning = {next_move, 'staying in place since there are no good positions'}
         else:
-            print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
             next_move = bot.random.choice(list(good_positions))
             reasoning = {next_move, 'moving randomly from the enemy'}
 
