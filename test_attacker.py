@@ -1,5 +1,5 @@
 import numpy as np
-from attacker_02 import move
+from attacker import move
 from pelita.utils import setup_test_game
 
 def test_eat_food():
@@ -7,7 +7,7 @@ def test_eat_food():
     layout="""
     ########
     #    a.#
-    #.b  xy#
+    #.b yx #
     ########
     """
     bot = setup_test_game(layout=layout, is_blue=True)
@@ -47,4 +47,4 @@ def test_escape_mode_given_enemy_steps():
     """
     bot = setup_test_game(layout=layout, is_blue=True)
     next_move = move(bot, {})
-    assert next_move == (3, 2)
+    assert next_move == (3, 2) or next_move == (4, 2)

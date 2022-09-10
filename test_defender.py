@@ -1,4 +1,4 @@
-from demo05_basic_defender import move
+from defender_02 import move
 from pelita.utils import setup_test_game
 
 def test_kill_enemy():
