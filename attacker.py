@@ -131,58 +131,16 @@ def move(bot, state):
         graph = state['graph']
         our_border = state['border']
         state['updated_graph'], state['updated_walls'] = update_graph_for_enemies(bot, state)
-        
-    if bot.position in bot.homezone and bot.position not in our_border:
-        print(f"Bot {bot.turn} command {bot.is_blue} is in homezome")
-        # compute distance to all border cells
-        # select the shortest path to the border
-        min_path_length = float('inf')
-        best_path = None
-        for cell in our_border:
-            path = get_shortest_path(state['graph'],
-                                          bot.position, cell)
-            if path is None:
-                best_path = None
-            else:
-                if len(path) < min_path_length:
-                    best_path = path[1:]
-                    min_path_length = len(path)
 
-        # remember the path
-        state[bot.turn]['path'] = best_path[1:]
-
+    # else:
+    best_path = find_path_to_best_pellet(bot,state)
+    if best_path == None:
+        pass
     else:
-        best_path = find_path_to_best_pellet(bot,state)
-        if best_path == None:
-            pass
-        else:
-            best_path = find_path_to_best_pellet(bot,state)[1:]
-        
-        print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
-        print(best_path)
-        # get_greedy_path takes care of knowing 
-        # where the enemies are
-        # for cell in bot.legal_positions:
-            # enemy_food = bot.enemy[0].food
-            # if cell in enemy_food:
-            #    best_path = [cell] # FIXME: random of all foods
-            # else:
-                # best_path = find_path_to_best_pellet(bot,state)
-                # print(best_path)
-                # for food in enemy_food:
-                #     assert food not in updated_graph
-                # assert bot.position not in state['updated_walls']
-                # paths = [get_shortest_path(state['updated_graph'], bot.position, food)
-                #          for food in enemy_food
-                #         if food in state['updated_graph']]
-                # filter out None's 
-                # paths = [p for p in paths if p is not None]
-
-                # if there are not paths
-                # if not paths:
-                #    best_path = None
-                # else:
-                #    best_path = min(paths, key = len)[1:]
+        best_path = find_path_to_best_pellet(bot,state)[1:]
+    
+    print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
+    print(best_path)
 
     if best_path is not None:
         next_move = best_path[0]
@@ -195,6 +153,7 @@ def move(bot, state):
         if not good_positions:
             next_move = bot.position
         else:
+            print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
             next_move = bot.random.choice(list(good_positions))
 
     return next_move
