@@ -5,11 +5,14 @@
 # As soon as an enemy bot is not noisy anymore, i.e. it has come near, the
 # bot goes after it and leaves the other enemy alone
 
+# TODO
+# Back and forth wiggling
+# More reliable tracking of a transiently noisy enemy
+
 TEAM_NAME = 'Basic Defender Bots'
 
-
 import networkx
-
+import numpy as np
 from pelita.utils import walls_to_graph
 def init_defend_state():
     return {
@@ -28,7 +31,6 @@ def move(bot, state):
     if bot.enemy[0].is_noisy and bot.enemy[1].is_noisy:
         # if both enemies are noisy, just aim for our turn companion
         target = bot.enemy[turn].position
-        #state[bot.turn]['defend_ID'] = bot.enemy[turn]
     elif not bot.enemy[0].is_noisy and not bot.enemy[1].is_noisy:
         # if none are noisy, aim for the closest one
         if bot.enemy[turn].position in bot.homezone:
@@ -45,58 +47,53 @@ def move(bot, state):
                 target = bot.enemy[turn].position
             else:
                 target = bot.enemy[1-turn].position
-        #target = change_target(bot,networkx,turn,state)
+        else:
+            dist_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
+            dist_not_turn = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
+            if dist_turn < dist_not_turn:
+                target = bot.enemy[turn].position
+            else:
+                target = bot.enemy[1-turn].position
     elif not bot.enemy[turn].is_noisy:
         # if our turn companion is not noisy, go for it
-        target = bot.enemy[turn].position
+        if bot.enemy[turn].position not in bot.homezone and bot.enemy[1-turn].position in bot.homezone:
+            target = bot.enemy[1-turn].position
+        else:
+            target = bot.enemy[turn].position
+
         #state[bot.turn]['defend_ID'] = bot.enemy[turn]
     elif not bot.enemy[1-turn].is_noisy:
         # if the other enemy is not noisy, go for it
-        target = bot.enemy[1-turn].position
-        #state[bot.turn]['defend_ID'] = bot.enemy[1-turn]
+        if bot.enemy[1-turn].position not in bot.homezone and bot.enemy[turn].position in bot.homezone:
+            target = bot.enemy[turn].position
+        else:
+            target = bot.enemy[1-turn].position
     else:
         raise Exception('We should never be here!')
 
     # get the next position along the shortest path to our target enemy bot
     next_pos = networkx.shortest_path(state['graph'], bot.position, target)[1]
+    if next_pos == bot.enemy[0].enemy[1-bot.turn].position:
+        next_pos = bot.position
+    #if bot.position == state[bot.turn]["position"][-5] and target == next_pos:
+        #find_former_position = 
+        #find_former_position = diff(state[bot.turn])
+
+
     # we save the current target in our state dictionary
     state[bot.turn]["defend_target"] = target
-
+    state[bot.turn]["position"] = bot.position
     # let's check that we don't go into the enemy homezone, i.e. stop at the
     # border
     if next_pos in bot.enemy[turn].homezone:
         next_pos = bot.position
 
+    
+
     return next_pos
 
 
-def change_target(bot,networkx,turn,state):
-    if bot.enemy[turn].position in bot.homezone:
-        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
-        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
-        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
-            target = bot.enemy[turn].position
-        else:
-            target = bot.enemy[1-turn].position
-    else:
-        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
-        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
-        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
-            target = bot.enemy[turn].position
-        else:
-            target = bot.enemy[1-turn].position
 
-
-
-
-#if both not noisy
- #   clostest target = 
-#
- #   if both in hz
- #   - go for closest one
-#
-  #  if one in homezone
-   # - go for it 
         
 
 
