@@ -54,11 +54,15 @@ def move(bot, state):
         # if the other enemy is not noisy, go for it
         target = bot.enemy[1-turn].position
         #state[bot.turn]['defend_ID'] = bot.enemy[1-turn]
+        #if bot.enemy[1-turn].position not in bot.homezone and bot.enemy[turn].position in bot.homezone:
+            #target = bot.enemy[turn].position
     else:
         raise Exception('We should never be here!')
 
     # get the next position along the shortest path to our target enemy bot
     next_pos = networkx.shortest_path(state['graph'], bot.position, target)[1]
+
+    #if bot.turn in bot.homezone and target == 
     # we save the current target in our state dictionary
     state[bot.turn]["defend_target"] = target
 
@@ -70,33 +74,7 @@ def move(bot, state):
     return next_pos
 
 
-def change_target(bot,networkx,turn,state):
-    if bot.enemy[turn].position in bot.homezone:
-        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
-        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
-        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
-            target = bot.enemy[turn].position
-        else:
-            target = bot.enemy[1-turn].position
-    else:
-        bot.enemy[turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[turn].position))
-        bot.enemy[1-turn].dist = len(networkx.shortest_path(state['graph'], bot.position, bot.enemy[1-turn].position))
-        if bot.enemy[turn].dist < bot.enemy[1-turn].dist:
-            target = bot.enemy[turn].position
-        else:
-            target = bot.enemy[1-turn].position
 
-
-
-
-#if both not noisy
- #   clostest target = 
-#
- #   if both in hz
- #   - go for closest one
-#
-  #  if one in homezone
-   # - go for it 
         
 
 

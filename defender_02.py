@@ -30,7 +30,10 @@ def move(bot, state):
     turn = bot.turn
     if bot.enemy[0].is_noisy and bot.enemy[1].is_noisy:
         # if both enemies are noisy, just aim for our turn companion
-        target = bot.enemy[turn].position
+        if bot.enemy[turn].position not in bot.homezone and bot.enemy[1-turn].position in bot.homezone:
+            target = bot.enemy[1-turn].position
+        else:
+            target = bot.enemy[turn].position
     elif not bot.enemy[0].is_noisy and not bot.enemy[1].is_noisy:
         # if none are noisy, aim for the closest one
         if bot.enemy[turn].position in bot.homezone:
@@ -82,7 +85,7 @@ def move(bot, state):
 
     # we save the current target in our state dictionary
     state[bot.turn]["defend_target"] = target
-    state[bot.turn]["position"] = bot.position
+    #state[bot.turn]["position"] = bot.position
     # let's check that we don't go into the enemy homezone, i.e. stop at the
     # border
     if next_pos in bot.enemy[turn].homezone:

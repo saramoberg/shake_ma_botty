@@ -25,7 +25,7 @@ def find_closest_x_food(bot, state, position, x, visited_pellets=[]):
             path_lengths.append(50)
         else:
             path_lengths.append(len(path))
-    
+
     # Pick the closest x pellets
     closest_pellets = np.argsort(path_lengths)[:x]
 
@@ -42,18 +42,18 @@ def find_path_to_best_pellet(bot, state):
 
     # Locations for closest food
     closest_food_loc, closest_food_dist = find_closest_x_food(bot, state, current_bot_location, 5)
-    
+
     total_lengths = []
     # Loop through x closest pellets
     for en, pellet in enumerate(closest_food_loc):
 
         # Current pellet to consider as starting point
         pellet_current_loc = pellet
-        
+
         # Distance to first pellet
         path_length = closest_food_dist[en]
         visited_pellet_loc = []
-        
+
         # Look at shortest path length from first pellet to 5 others
         for next_pellet in range(5):
             next_pellet_loc, next_pellet_dist = find_closest_x_food(bot, state, pellet_current_loc,1, visited_pellet_loc)
@@ -75,6 +75,7 @@ def find_path_to_best_pellet(bot, state):
     path_to_miracle_pellet = get_shortest_path(state['updated_graph'], bot.position, miracle_pellet_location)
 
     return path_to_miracle_pellet
+
 
 def get_shortest_path(graph, source, target):
     """If not path, returns None"""
@@ -119,18 +120,9 @@ def update_graph_for_enemies(bot, state):
     return updated_graph, updated_walls
 
 def move(bot, state):
-    if state == {}:
-        state[0] = init_attack_state()
-        state[1] = init_attack_state()
-        state['graph'] = walls_to_graph(bot.walls)
-        our_border = border(bot)
-        state['border'] = our_border
-        state['updated_graph'], state['updated_walls'] = update_graph_for_enemies(bot, state)
- 
-    else:
-        graph = state['graph']
-        our_border = state['border']
-        state['updated_graph'], state['updated_walls'] = update_graph_for_enemies(bot, state)
+    graph = state['graph']
+    our_border = state['border']
+    state['updated_graph'], state['updated_walls'] = update_graph_for_enemies(bot, state)
 
     # else:
     best_path = find_path_to_best_pellet(bot,state)
@@ -138,7 +130,7 @@ def move(bot, state):
         pass
     else:
         best_path = find_path_to_best_pellet(bot,state)[1:]
-    
+
     print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
     print(best_path)
 
@@ -152,8 +144,11 @@ def move(bot, state):
         }
         if not good_positions:
             next_move = bot.position
+            reasoning = {next_move, 'staying in place since there are no good positions'}
         else:
             print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
             next_move = bot.random.choice(list(good_positions))
+            reasoning = {next_move, 'moving randomly from the enemy'}
 
+    # print(reasoning)
     return next_move
