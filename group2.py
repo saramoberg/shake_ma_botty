@@ -107,7 +107,7 @@ def move(bot, state):
     if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
         state["global_strategy"] = "individual" # each bot's personality is updated individually
 
-    if len(bot.food) == 8 and state["lastFoodFlag"]:
+    if len(bot.food) == 6 and state["lastFoodFlag"]:
         #print("Food length", len(bot.food))
         state["global_strategy"] = "defend_last_food"
         #enteredLastFood = True
