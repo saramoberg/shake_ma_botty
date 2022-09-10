@@ -9,6 +9,7 @@ TEAM_NAME = 'ATTACKER'
 import networkx
 from pelita.utils import walls_to_graph
 
+
 def get_shortest_path(graph, source, target):
     """If not path, returns None"""
     try:
@@ -33,15 +34,8 @@ def init_attack_state():
         }
 
 def move(bot, state):
-    if state == {}:
-        state[0] = init_attack_state()
-        state[1] = init_attack_state()
-        state['graph'] = walls_to_graph(bot.walls)
-        our_border = border(bot)
-        state['border'] = our_border
-    else:
-        graph = state['graph']
-        our_border = state['border']
+    graph = state['graph']
+    our_border = state['border']
 
     if bot.position in bot.homezone and bot.position not in our_border:
         print(f"Bot {bot.turn} command {bot.is_blue} is in homezome")
@@ -60,7 +54,11 @@ def move(bot, state):
                     min_path_length = len(path)
 
         # remember the path
-        state[bot.turn]['path'] = best_path[1:]
+        if best_path is not None:
+            state[bot.turn]['path'] = best_path[1:]
+        else:
+            state[bot.turn]['path'] = best_path
+        # state[bot.turn]['path'] = best_path[1:]
 
     else:
         print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
@@ -104,6 +102,7 @@ def move(bot, state):
 
     if best_path is not None:
         next_move = best_path.pop(0)
+        reasoning = {next_move, 'found best_path nicely'}
     else:
         good_positions = {
             pos for pos in bot.legal_positions
@@ -112,7 +111,10 @@ def move(bot, state):
         }
         if not good_positions:
             next_move = bot.position
+            reasoning = {next_move, 'staying in place since there are no good positions'}
         else:
             next_move = bot.random.choice(list(good_positions))
+            reasoning = {next_move, 'moving randomly from the enemy'}
 
+    print(reasoning)
     return next_move
