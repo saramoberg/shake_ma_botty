@@ -46,10 +46,14 @@ def track_foodchange(bot, state):
     # update state for prev foodmap
     state['prev_foodmap'] = bot.food
     if food_diff:
-        print(bot.round, food_diff, bot.enemy[0].position, bot.enemy[0].is_noisy, bot.enemy[1].position, bot.enemy[1].is_noisy )
+        pass
+        #print(bot.round, food_diff, bot.enemy[0].position, bot.enemy[0].is_noisy, bot.enemy[1].position, bot.enemy[1].is_noisy )
 
 def move(bot, state):
     # initiate the state dictionary
+    turn = bot.turn
+    enteredLastFood = False
+
     if state == {}:
         # here each bot has its own state dictionary (0 and 1) and they share
         # the same game state information in the "graph"
@@ -65,14 +69,20 @@ def move(bot, state):
         state[1] = init_state("attacker")
 
         state[0]["defend_food_path"] = []
+        state[0]["defend_food_target"] = []
+
+        state[1]["defend_food_path"] = []
         state[1]["defend_food_target"] = []
 
 # if conditions for each global_strategy
     if bot.round == 16: ## TODO: find better condition for switiching out of initial strategy
         state["global_strategy"] = "individual" # each bot's personality is updated individually
 
-    if len(bot.food) <= 0:
+    if len(bot.food) == 28:
+        print(len(bot.food))
         state["global_strategy"] = "defend_last_food"
+        enteredLastFood = True
+
 ### define what to do based on global_strategy
 # game start --> move to midline
 # individual --> for now one attacker one defender
@@ -88,32 +98,57 @@ def move(bot, state):
         state[1]["personality"] = "defender"
 
     elif state["global_strategy"] == "defend_last_food":
-        print("entered defend last food state")
+
         target_options = bot.food
         # figure out how far each food is
         # for loop over target_options -- distance/shortest attack_path
         # pick shortest path target
-        if not state[bot.turn]["defend_food_target"]:
-            possible_paths = {}
+
+
+        if enteredLastFood:
+            enteredLastFood = False
+            possible_paths_turn = {}
+            possible_paths_other = {}
+
             for target_option in target_options:
-                possible_paths[target_option] = len(networkx.shortest_path(state['graph'], bot.position, target)[1:])
+                possible_paths_turn[target_option] = len(networkx.shortest_path(state['graph'], bot.position, target_option)[1:])
+                possible_paths_other[target_option] = len(networkx.shortest_path(state['graph'], bot.other.position, target_option)[1:])
 
-            closest_food = sorted(possible_paths.items(), key=lambda x: x[1])
-            state[bot.turn]["defend_food_target"] = closest_food[0]
-            state[bot.turn]["defend_food_path"] = networkx.shortest_path(state['graph'], bot.position, closest_food[0])[1:]
+            closest_food_turn = sorted(possible_paths_turn.items(), key=lambda x: x[1])
+            closest_food_other = sorted(possible_paths_other.items(), key=lambda x: x[1])
 
-        print(closest_food[0], closest_food)
-        # choose a target food pellet if we still don't have one or
-        ## if the old target has been already eaten
+            if closest_food_turn[0][0] > closest_food_other[0][0]:
+                moving_bot = 1-turn
+                closest_food = closest_food_other
+            else:
+                moving_bot = turn
+                closest_food = closest_food_turn
 
-        path = state[bot.turn]["defend_food_path"]
-        # get the next position along the shortest path to reach our target
-        next_pos = path.pop(0)
+            # choose a target food pellet if we still don't have one or
+            ## if the old target has been already eaten
+            if bot.turn == moving_bot:
+                ### assing only to appropriate bot via bot.char or bot.other.char
+                state[moving_bot]["defend_food_target"] = closest_food[0][0]
+                state[moving_bot]["defend_food_path"] = networkx.shortest_path(state['graph'], bot.position, closest_food[0][0])[1:]
+
+                path = state[bot.turn]["defend_food_path"]
+                print("is full: ", state[bot.turn]["defend_food_path"])
+                print("Bot position:", bot.position)
+                # get the next position along the shortest path to reach our target
+                if path == []:
+                    next_pos = bot.position
+                else:
+                    next_pos = path.pop(0)
+                state[bot.turn]["personality"] = "last_defender"
+
+            else:
+                if state[bot.turn]["personality"] == "defender":
+                    state[bot.turn]["personality"] = "attacker"
 
         # get a list of safe positions
         safe_positions = []
         for pos in bot.legal_positions:
-            if pos not in (enemy[0].position, enemy[1].position):
+            if pos not in (bot.enemy[0].position, bot.enemy[1].position):
                 safe_positions.append(pos)
 
 
