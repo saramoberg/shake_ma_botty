@@ -82,7 +82,7 @@ def move(bot, state):
 
     # we save the current target in our state dictionary
     state[bot.turn]["defend_target"] = target
-    state[bot.turn]["position"] = bot.position
+    #state[bot.turn]["position"] = bot.position
     # let's check that we don't go into the enemy homezone, i.e. stop at the
     # border
     if next_pos in bot.enemy[turn].homezone:
