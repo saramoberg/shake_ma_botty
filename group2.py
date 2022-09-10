@@ -1,4 +1,4 @@
-TEAM_NAME = 'NonViolentPelitas'
+TEAM_NAME = 'Shake Dat Botty'
 
 import networkx
 import pelita.utils
@@ -10,9 +10,30 @@ from pelita.utils import walls_to_graph
 from defender_02 import move as move_defender
 from attacker import move as move_attacker, border
 
-#import utils
+def say_message(bot, state):
+    def_messages = ['give me a hug!', 'come on', 'im nice', 'dont run away','im hugry']
+    att_messages = ['be faster', 'hurry up', 'tired?','im hugry']
+    first_message_len = 35
+    change_chance = 0.1
 
-# our own food: bot.food
+    if bot.round < first_message_len:
+        if bot.position not in bot.homezone:
+            msg = 'catch me'
+        else:
+            msg = 'hola!'
+    else:
+        # with 5% chance set msg back to None
+        if bot.random.randint(0, 100) / 100 < change_chance:
+            state[bot.turn]['msg'] = None
+        msg_list = def_messages if bot.position in bot.homezone else att_messages
+        if state[bot.turn]['msg'] is None:
+            msg = bot.random.choice(msg_list)
+            state[bot.turn]['msg'] = msg
+        else:
+                msg = state[bot.turn]['msg']
+
+    bot.say(msg)
+
 
 ## initiate the state dictionary
 def init_state(personality):
@@ -27,6 +48,7 @@ def init_state(personality):
         # entries prefixed with "defend_" are used by the move_defender function
         "defend_target": None,
         "defend_path": None,
+        'msg':None,
 
         #"path": [],
         #"border": [],
@@ -184,5 +206,7 @@ def move(bot, state):
 
     if next_pos not in bot.legal_positions:
         next_pos = bot.random.choice(bot.legal_positions)
+
+    say_message(bot, state)
 
     return next_pos
