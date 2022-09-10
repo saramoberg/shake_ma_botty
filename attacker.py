@@ -38,7 +38,7 @@ def move(bot, state):
     our_border = state['border']
 
     if bot.position in bot.homezone and bot.position not in our_border:
-        print(f"Bot {bot.turn} command {bot.is_blue} is in homezome")
+        # print(f"Bot {bot.turn} command {bot.is_blue} is in homezome")
         # compute distance to all border cells
         # select the shortest path to the border
         min_path_length = float('inf')
@@ -61,8 +61,8 @@ def move(bot, state):
         # state[bot.turn]['path'] = best_path[1:]
 
     else:
-        print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
-        # get_greedy_path takes care of knowing 
+        # print(f"Bot {bot.turn} command {bot.is_blue} is in attack mode")
+        # get_greedy_path takes care of knowing
         # where the enemies are
         for cell in bot.legal_positions:
             enemy_food = bot.enemy[0].food
@@ -91,7 +91,7 @@ def move(bot, state):
                 paths = [get_shortest_path(updated_graph, bot.position, food)
                          for food in enemy_food
                          if food in updated_graph]
-                # filter out None's 
+                # filter out None's
                 paths = [p for p in paths if p is not None]
 
                 # if there are not paths
@@ -116,5 +116,5 @@ def move(bot, state):
             next_move = bot.random.choice(list(good_positions))
             reasoning = {next_move, 'moving randomly from the enemy'}
 
-    print(reasoning)
+    # print(reasoning)
     return next_move
