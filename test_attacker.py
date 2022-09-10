@@ -1,4 +1,5 @@
-from demo04_basic_attacker import move
+import numpy as np
+from attacker_02 import move
 from pelita.utils import setup_test_game
 
 def test_eat_food():
